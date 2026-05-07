@@ -11,5 +11,5 @@ Built-in pi only triggers `/skill:` autocomplete when it's at the very start of 
 ## Install
 
 ```sh
-pi install git:https://github.com/<your-user>/pi-skill-autocomplete
+pi install git:github.com/carlosarraes/pi-skill-autocomplete
 ```
