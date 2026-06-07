@@ -4,11 +4,11 @@ import {
 	loadSkills,
 	type Skill,
 	stripFrontmatter,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import {
 	type AutocompleteProvider,
 	fuzzyFilter,
-} from "@mariozechner/pi-tui";
+} from "@earendil-works/pi-tui";
 
 const SKILL_PREFIX = "/skill:";
 
