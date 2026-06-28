@@ -7,8 +7,10 @@ import {
 	stripFrontmatter,
 } from "@earendil-works/pi-coding-agent";
 import {
+	Container,
 	fuzzyFilter,
 	matchesKey,
+	Text,
 	truncateToWidth,
 	visibleWidth,
 } from "@earendil-works/pi-tui";
@@ -80,6 +82,11 @@ const bold = (s: string) => `\x1b[1m${s}\x1b[22m`;
 const italic = (s: string) => `\x1b[3m${s}\x1b[23m`;
 
 const MAX_VISIBLE = 8;
+
+// Lines of each skill body shown in the transcript before "expand to view".
+const PREVIEW_LINES = 8;
+
+const SKILL_BLOCK_RE = /<skill name="([^"]+)"[^>]*>\n?([\s\S]*?)\n?<\/skill>/g;
 
 // Multi-select skill picker rendered as a centered overlay. Space toggles the
 // row under the cursor, enter resolves with every chosen name, esc cancels.
@@ -235,6 +242,47 @@ async function openPalette(ctx: ExtensionContext): Promise<void> {
 }
 
 export default (pi: ExtensionAPI) => {
+	// Render injected skill-context messages as collapsible "◆ Skill: name"
+	// blocks instead of a raw <skill> wall of text.
+	pi.registerMessageRenderer("skill-context", (message, options, theme) => {
+		const content = message.content;
+		const raw =
+			typeof content === "string"
+				? content
+				: Array.isArray(content)
+					? content.map((c: any) => (c?.type === "text" ? (c.text ?? "") : "")).join("")
+					: String(content ?? "");
+
+		const container = new Container();
+		const blocks = [...raw.matchAll(SKILL_BLOCK_RE)];
+		if (blocks.length === 0) {
+			container.addChild(new Text(theme.fg("dim", raw), 1, 0));
+			return container;
+		}
+
+		blocks.forEach((match, i) => {
+			if (i > 0) container.addChild(new Text("", 1, 0));
+			const name = match[1];
+			const lines = match[2].trim().split("\n");
+			const shown = options.expanded ? lines : lines.slice(0, PREVIEW_LINES);
+			container.addChild(
+				new Text(
+					`${theme.fg("accent", "◆ ")}${theme.fg("customMessageLabel", theme.bold("Skill: "))}${theme.fg("accent", name)}`,
+					1,
+					0,
+				),
+			);
+			for (const line of shown) container.addChild(new Text(theme.fg("dim", line), 1, 0));
+			if (!options.expanded && lines.length > PREVIEW_LINES) {
+				container.addChild(
+					new Text(theme.fg("muted", `… ${lines.length - PREVIEW_LINES} more lines (expand to view)`), 1, 0),
+				);
+			}
+		});
+
+		return container;
+	});
+
 	pi.on("session_start", async (_event, ctx) => {
 		refreshSkills(ctx.cwd);
 	});
