@@ -1,7 +1,7 @@
 {
   "name": "pi-skill-autocomplete",
   "version": "0.1.0",
-  "description": "Mid-line skill autocomplete and expansion for Pi — type /skill:foo anywhere in your prompt",
+  "description": "Multi-select skill palette (Ctrl-E / /skills) plus mid-prompt /skill: expansion for Pi",
   "main": "./src/index.ts",
   "type": "module",
   "license": "MIT",
